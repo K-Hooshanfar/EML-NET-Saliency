@@ -1,6 +1,4 @@
-# This file contains the dataloader used to read imagres and annotations from the SALICON dataset.
-#
-# Author : Sen Jia 
+# This file contains the dataloader used to read imagres and annotations from the Custom dataset.
 #
 
 import random
@@ -14,18 +12,24 @@ def make_trainset(root):
     if not isinstance(root, pl.Path):
         root = pl.Path(root)
         
-    img_root = root / "images/train"
-    fix_root = root / "fixations/train"
-    map_root = root / "maps/train"
+    img_root = root / "train/train_stimuli"
+    fix_root = root / "train/train_fixation"
+    map_root = root / "train/train_saliency"
 
     files = [f.stem for f in img_root.glob("*.jpg")]
+    print(len(files))
 
     images = []
-
+    i=0
     for f in files:
+        print(i)
         img_path = (img_root / f).with_suffix(".jpg")
-        fix_path = (fix_root / f).with_suffix(".mat")
-        map_path = (map_root / f).with_suffix(".png")
+        print(img_path)
+        fix_path = (fix_root / (f + "_fixPts.png")).with_suffix(".png")
+        print(fix_path)
+        map_path = (map_root / (f + "_fixMap")).with_suffix(".jpg")
+        print(map_path)
+        i +=1 
         images.append([img_path, fix_path, map_path])
 
     return images
@@ -66,8 +70,9 @@ class ImageList(data.Dataset):
                  loader=default_loader, mat_loader=mat_loader, map_loader=map_loader):
 
         imgs = make_trainset(root)
+        print(root)
         if not imgs:
-            raise(RuntimeError("Found 0 images in folder: " + root + "\n"))
+            raise(RuntimeError("Found 0 images in folder: " + str(root) + "\n"))
 
         self.root = root
         self.imgs = imgs
@@ -83,10 +88,10 @@ class ImageList(data.Dataset):
 
         img = self.loader(img_path)
         w, h = img.size
-        fixpts = self.mat_loader(fix_path, (w, h))
+        fixmap = self.loader(fix_path)
         smap = self.map_loader(map_path)
 
-        fixmap = self.pts2pil(fixpts, img)
+        # fixmap = self.pts2pil(fixpts, img)
 
         if self.train:
             if random.random() > 0.5:
@@ -106,6 +111,11 @@ class ImageList(data.Dataset):
         for p in fixpts:
             fixmap.putpixel((p[0], p[1]), 255)
         return fixmap
+
+    def __len__(self):
+        return len(self.imgs)
+
+
 
     def __len__(self):
         return len(self.imgs)
