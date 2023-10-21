@@ -24,11 +24,8 @@ def make_trainset(root):
     for f in files:
         print(i)
         img_path = (img_root / f).with_suffix(".jpg")
-        print(img_path)
         fix_path = (fix_root / (f + "_fixPts.png")).with_suffix(".png")
-        print(fix_path)
         map_path = (map_root / (f + "_fixMap")).with_suffix(".jpg")
-        print(map_path)
         i +=1 
         images.append([img_path, fix_path, map_path])
 
